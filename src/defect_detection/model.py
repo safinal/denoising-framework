@@ -5,7 +5,7 @@ from src.defect_detection.config import device
 
 
 def create_defect_detection_model():
-    model = torchvision.models.efficientnet_v2_l(pretrained=True)
+    model = torchvision.models.efficientnet_v2_l(weights='DEFAULT')
     for param in model.parameters():
         param.requires_grad = False
     model.avgpool = torch.nn.Identity()

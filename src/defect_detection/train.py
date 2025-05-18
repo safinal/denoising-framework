@@ -50,6 +50,7 @@ def train_defect_detection_model(model, train_loader, val_loader, optimizer, cri
         validation_f1_list.append(val_f1)
         print(f"Validation F1 Score: {val_f1}")
         if validation_f1_list[-1] == max(validation_f1_list):
+            os.makedirs(os.path.join(base_logs_dir, experiment_logs_dir), exist_ok=True)
             torch.save(model.state_dict(), os.path.join(base_logs_dir, experiment_logs_dir, "best_model.pth"))
 
     plt.plot(train_f1_list, label="Train")

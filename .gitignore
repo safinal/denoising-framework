@@ -1,3 +1,5 @@
 DataSet1/
+DataSet2/
 __pycache__/
 .denoising_venv/
+logs/

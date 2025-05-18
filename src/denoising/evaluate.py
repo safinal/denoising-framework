@@ -26,11 +26,12 @@ def check_denoising_performance(model, loader, noise_type, split):
             count += noisy_image_gray.shape[0]
     psnr, ssim, lpips = psnr / count, ssim / count, lpips / count
     results = {
-        "psnr": psnr, 
-        "ssim": ssim, 
-        "lpips": lpips
+        "psnr": psnr.detach().cpu().numpy(), 
+        "ssim": ssim.detach().cpu().numpy(), 
+        "lpips": lpips.detach().cpu().numpy()
     }
     print(results)
+    os.makedirs(os.path.join(denoising_logs_dir, noise_type), exist_ok=True)
     with open(os.path.join(denoising_logs_dir, noise_type, f"{split}_results.json"), 'w') as f:
         json.dump(results, f)
 
@@ -62,17 +63,15 @@ def check_noise_type_detection_performance(loader, model, split):
         # fpr, tpr, thresholds = torchmetrics.functional.classification.multiclass_roc(full_scores, full_y, num_classes=3)
     
     results = {
-        "accuracy": accuracy, 
-        "precision": precision, 
-        "recall": recall, 
-        "f1_score": f1_score, 
-        "specificity": specificity, 
-        "auroc": auroc, 
-        "full_y": full_y, 
-        "full_predictions": full_predictions, 
-        "full_scores": full_scores
+        "accuracy": accuracy.detach().cpu().item(), 
+        "precision": precision.detach().cpu().item(), 
+        "recall": recall.detach().cpu().item(), 
+        "f1_score": f1_score.detach().cpu().item(), 
+        "specificity": specificity.detach().cpu().item(), 
+        "auroc": auroc.detach().cpu().item(), 
     }
     print(results)
+    os.makedirs(noise_type_detcetion_logs_dir, exist_ok=True)
     with open(os.path.join(noise_type_detcetion_logs_dir, f"{split}_results.json"), 'w') as f:
         json.dump(results, f)
         

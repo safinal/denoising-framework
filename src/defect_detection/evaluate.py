@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 from sklearn.model_selection import KFold
 
 from src.defect_detection.config import device, base_logs_dir, k_folds, batch_size, learning_rate, num_epochs
-from src.defect_detection.model import create_model
+from src.defect_detection.model import create_defect_detection_model
 
 
 def check_defect_detection_performance(loader, model, experiment_logs_dir, split):
@@ -36,17 +36,15 @@ def check_defect_detection_performance(loader, model, experiment_logs_dir, split
         auroc = torchmetrics.functional.classification.binary_auroc(full_scores, full_y)
 
     results = {
-        "accuracy": accuracy, 
-        "precision": precision, 
-        "recall": recall, 
-        "f1_score": f1_score, 
-        "specificity": specificity, 
-        "auroc": auroc, 
-        "full_y": full_y, 
-        "full_predictions": full_predictions, 
-        "full_scores": full_scores
+        "accuracy": accuracy.detach().cpu().item(), 
+        "precision": precision.detach().cpu().item(), 
+        "recall": recall.detach().cpu().item(), 
+        "f1_score": f1_score.detach().cpu().item(), 
+        "specificity": specificity.detach().cpu().item(), 
+        "auroc": auroc.detach().cpu().item()
     }
     print(results)
+    os.makedirs(os.path.join(base_logs_dir, experiment_logs_dir), exist_ok=True)
     with open(os.path.join(base_logs_dir, experiment_logs_dir, f"{split}_results.json"), 'w') as f:
         json.dump(results, f)
 
@@ -73,7 +71,7 @@ def defect_detection_k_fold_cross_validation(dataset, criterion, experiment_logs
         train_loader = torch.utils.data.DataLoader(dataset=dataset, batch_size=batch_size, sampler=torch.utils.data.SubsetRandomSampler(train_idx))
         val_loader = torch.utils.data.DataLoader(dataset=dataset, batch_size=batch_size, sampler=torch.utils.data.SubsetRandomSampler(val_idx))
 
-        model = create_model()
+        model = create_defect_detection_model()
         model.to(device)
         optimizer = torch.optim.Adam(params=model.parameters(), lr=learning_rate)
         model.train()
@@ -95,4 +93,4 @@ def defect_detection_k_fold_cross_validation(dataset, criterion, experiment_logs
                 loop.set_postfix(loss=loss.item())
 
         print(f"Val set: ", end='')
-        check_performance(val_loader, model, experiment_logs_dir=experiment_logs_dir, split=f"cross_val_{fold}")
+        check_defect_detection_performance(val_loader, model, experiment_logs_dir=experiment_logs_dir, split=f"cross_val_{fold}")

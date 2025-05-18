@@ -51,6 +51,7 @@ def train_denoising_model(model, train_loader, val_loader, optimizer, criterion,
         # Save best model
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
+            os.makedirs(os.path.join(denoising_logs_dir, noise_type), exist_ok=True)
             torch.save(model.state_dict(), os.path.join(denoising_logs_dir, noise_type, "best_model.pth"))
     
     # Plot and save both train and validation loss curves
@@ -122,6 +123,7 @@ def train_noise_type_detcetion_model(model, train_loader, val_loader, optimizer,
         validation_f1_list.append(validation_f1)
         print(f"Validation F1 Score: {validation_f1}")
         if validation_f1 == max(validation_f1_list):
+            os.makedirs(noise_type_detcetion_logs_dir, exist_ok=True)
             torch.save(model.state_dict(), os.path.join(noise_type_detcetion_logs_dir, "best_model.pth"))
 
     plt.plot(train_f1_list, label="Train")

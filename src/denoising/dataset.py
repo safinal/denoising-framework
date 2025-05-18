@@ -12,7 +12,7 @@ from src.denoising.config import noise_type_detection_batch_size, denoising_batc
 class NoiseDataset(torch.utils.data.Dataset):
     def __init__(self, root_dir='DataSet2', spreadsheet_file='Labels.xlsx', transform=None):
         self.label_mapping_dict = {'Gaussian': 0, 'Periodic': 1, 'Salt': 2}
-        self.annotations = pd.read_excel(spreadsheet_file).drop(columns='Denoise Image')[['Noisy Image', 'Noise Type']]
+        self.annotations = pd.read_excel(os.path.join(root_dir, spreadsheet_file)).drop(columns='Denoise Image')[['Noisy Image', 'Noise Type']]
         self.annotations['Noise Type'] = self.annotations['Noise Type'].map(self.label_mapping_dict)
         self.root_dir = root_dir
         self.transform = transform
@@ -30,7 +30,7 @@ class NoiseDataset(torch.utils.data.Dataset):
 
 class NoisyImagesDataset(torch.utils.data.Dataset):
     def __init__(self, noise_type, root_dir='DataSet2', spreadsheet_file='Labels.xlsx', transform=None): # 'Gaussian' 'Periodic' 'Salt'
-        self.annotations = pd.read_excel(spreadsheet_file)
+        self.annotations = pd.read_excel(os.path.join(root_dir, spreadsheet_file))
         self.annotations = self.annotations[self.annotations['Noise Type'] == noise_type].drop(columns='Noise Type')[['Noisy Image', 'Denoise Image']]
         self.root_dir = root_dir
         self.transform = transform
