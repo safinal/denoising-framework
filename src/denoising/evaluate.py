@@ -26,9 +26,9 @@ def check_denoising_performance(model, loader, noise_type, split):
             count += noisy_image_gray.shape[0]
     psnr, ssim, lpips = psnr / count, ssim / count, lpips / count
     results = {
-        "psnr": psnr.detach().cpu().numpy(), 
-        "ssim": ssim.detach().cpu().numpy(), 
-        "lpips": lpips.detach().cpu().numpy()
+        "psnr": psnr.detach().cpu().item(), 
+        "ssim": ssim.detach().cpu().item(), 
+        "lpips": lpips.detach().cpu().item()
     }
     print(results)
     os.makedirs(os.path.join(denoising_logs_dir, noise_type), exist_ok=True)

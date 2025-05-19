@@ -3,3 +3,4 @@ DataSet2/
 __pycache__/
 .denoising_venv/
 logs/
+DataSet1_Noise_Removed/

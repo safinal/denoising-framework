@@ -63,7 +63,7 @@ def train_denoising_model(model, train_loader, val_loader, optimizer, criterion,
     plt.ylabel('Loss')
     plt.legend()
     plt.grid(True)
-    plt.savefig(os.path.join(denoising_logs_dir, "loss_plot.png"))
+    plt.savefig(os.path.join(denoising_logs_dir, noise_type, "loss_plot.png"))
     plt.close()
 
     # Load best model
