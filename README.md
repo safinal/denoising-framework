@@ -1,86 +1,71 @@
-# Image Denoising and Defect Detection Framework
+# Denoising Framework
 
-This framework implements a multi-phase approach to image denoising and defect detection, combining deep learning techniques to handle different types of noise and improve defect detection accuracy.
-
+A robust framework for image denoising and defect detection, leveraging a multi-phase deep learning approach to effectively handle various noise types and enhance defect detection accuracy.
 
 ## Features
 
-- **Phase 1**: Defect Detection
-  - Binary classification model for defect detection
-  - Uses BCEWithLogitsLoss for training
-  - AdamW optimizer with configurable learning rate
+### Phase 1: Defect Detection
+- Implements a binary classification model for accurate defect detection
+- Utilizes BCEWithLogitsLoss for model training
+- Employs AdamW optimizer with configurable learning rate
 
-- **Phase 2.1**: Noise Type Detection
-  - Multi-class classification for identifying noise types
-  - Supports Gaussian, Periodic, and Salt noise types
-  - CrossEntropyLoss for training
+### Phase 2.1: Noise Type Detection
+- Performs multi-class classification to identify noise types
+- Supports Gaussian, Periodic, and Salt noise types
+- Uses CrossEntropyLoss for training
 
-- **Phase 2.2**: Denoising Models
-  - Separate denoising models for each noise type
-  - Custom architecture for effective noise removal
-  - Individual training pipelines for each noise type
+### Phase 2.2: Denoising Models
+- Provides dedicated denoising models for each noise type
+- Features a custom architecture optimized for noise removal
+- Includes individual training pipelines for each noise type
 
-- **Phase 3**: End-to-End Pipeline
-  - Combines noise type detection and denoising
-  - Processes entire dataset with appropriate denoising
-  - Retrains defect detection on denoised images
+### Phase 3.1: Dataset Denoising
+- Applies trained models to denoise the entire dataset
+- Integrates noise type detection and denoising for seamless processing
 
-## Requirements
-
-- Python 3.x
-- PyTorch
-- torchvision
-- torchmetrics
-- scikit-learn
-- numpy
-- pandas
-- matplotlib
-- tqdm
-- opencv-python
-- gdown
-- openpyxl
+### Phase 3.2: Defect Detection on Denoised Data
+- Retrains the defect detection model using denoised images
 
 ## Installation
 
-1. Clone the repository:
-```bash
-git clone https://github.com/safinal/denoising-framework.git
-cd denoising-framework
-```
+Follow these steps to set up the framework:
 
-2. Create and activate a virtual environment:
-```bash
-python -m venv .venv
-source .venv/bin/activate  # On Linux/Mac
-# or
-.venv\Scripts\activate  # On Windows
-```
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/safinal/denoising-framework.git
+   cd denoising-framework
+   ```
 
-3. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
+2. **Set Up a Virtual Environment**:
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # On Linux/Mac
+   # or
+   .venv\Scripts\activate     # On Windows
+   ```
+
+3. **Install Dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
 ## Usage
 
-The framework can be run in different phases using the main script:
+Run the framework in different phases using the main script:
 
 ```bash
-python run.py [phase]
+python run.py --phase [PHASE] --config [YAML_CONFIG_PATH]
 ```
 
-Available phases:
-- `phase1`: Run defect detection training
-- `phase2.1`: Train noise type detection model
-- `phase2.2`: Train denoising models for each noise type
-- `phase3`: Run the complete pipeline (noise detection + denoising + defect detection)
+### Available Phases
+- `phase1`: Trains the defect detection model
+- `phase2.1`: Trains the noise type detection model
+- `phase2.2`: Trains denoising models for each noise type
+- `phase3.1`: Denoises the dataset using trained models
+- `phase3.2`: Retrains defect detection on the denoised dataset
 
-## Configuration
-
-The framework uses configuration parameters defined in:
-- `src/denoising/config.py`: Denoising and noise type detection parameters
-- `src/defect_detection/config.py`: Defect detection parameters
-
+### Configuration
+The framework uses YAML configuration files located in the `src/config/` directory to specify parameters.
 
 ## License
 
