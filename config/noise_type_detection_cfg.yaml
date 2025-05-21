@@ -1,0 +1,6 @@
+num_classes: 3
+lr: 0.001
+batch_size: 256
+num_epochs: 5
+logs_dir: "logs/noise_type_detcetion"
+val_fraction: 0.2

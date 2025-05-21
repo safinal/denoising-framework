@@ -1,0 +1,6 @@
+in_channels: 1
+lr: 0.001
+batch_size: 16
+num_epochs: 30
+val_fraction: 0.2
+logs_dir: "logs/denoising"

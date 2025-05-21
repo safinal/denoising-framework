@@ -1,4 +1,3 @@
-# noise type detection
 import torch
 import torchvision
 import cv2
@@ -6,7 +5,7 @@ import os
 import pandas as pd
 import numpy as np
 
-from src.denoising.config import noise_type_detection_batch_size, denoising_batch_size
+from src.config import ConfigManager
 
 
 class NoiseDataset(torch.utils.data.Dataset):
@@ -27,6 +26,7 @@ class NoiseDataset(torch.utils.data.Dataset):
         if self.transform:
             image = self.transform(image)
         return (image, y_label)
+
 
 class NoisyImagesDataset(torch.utils.data.Dataset):
     def __init__(self, noise_type, root_dir='DataSet2', spreadsheet_file='Labels.xlsx', transform=None): # 'Gaussian' 'Periodic' 'Salt'
@@ -50,17 +50,17 @@ class NoisyImagesDataset(torch.utils.data.Dataset):
         return noisy_image, image
 
 
-def create_noise_type_detcetion_train_val_datasets_and_loaders(val_fraction=0.2):
+def create_noise_type_detcetion_train_val_datasets_and_loaders():
     dataset = NoiseDataset(transform=torchvision.transforms.ToTensor())
-    train_dataset, val_dataset = torch.utils.data.random_split(dataset, [1 - val_fraction, val_fraction])
-    train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=noise_type_detection_batch_size, shuffle=True)
-    val_loader = torch.utils.data.DataLoader(dataset=val_dataset, batch_size=noise_type_detection_batch_size, shuffle=True)
+    train_dataset, val_dataset = torch.utils.data.random_split(dataset, [1 - ConfigManager().get("val_fraction"), ConfigManager().get("val_fraction")])
+    train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=ConfigManager().get("batch_size"), shuffle=True)
+    val_loader = torch.utils.data.DataLoader(dataset=val_dataset, batch_size=ConfigManager().get("batch_size"), shuffle=True)
     return train_dataset, train_loader, val_dataset, val_loader
 
 
-def create_denoising_train_val_datasets_and_loaders(noise_type, val_fraction=0.2):
+def create_denoising_train_val_datasets_and_loaders(noise_type):
     dataset = NoisyImagesDataset(noise_type=noise_type, transform=torchvision.transforms.ToTensor())
-    train_dataset, val_dataset = torch.utils.data.random_split(dataset, [1 - val_fraction, val_fraction])
-    train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=denoising_batch_size, shuffle=True)
-    val_loader = torch.utils.data.DataLoader(dataset=val_dataset, batch_size=denoising_batch_size, shuffle=True)
+    train_dataset, val_dataset = torch.utils.data.random_split(dataset, [1 - ConfigManager().get("val_fraction"), ConfigManager().get("val_fraction")])
+    train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=ConfigManager().get("batch_size"), shuffle=True)
+    val_loader = torch.utils.data.DataLoader(dataset=val_dataset, batch_size=ConfigManager().get("batch_size"), shuffle=True)
     return train_dataset, train_loader, val_dataset, val_loader

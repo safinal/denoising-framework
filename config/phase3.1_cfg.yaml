@@ -1,0 +1,5 @@
+noise_type_detcetion_checkpoint: "logs/noise_type_detcetion/best_model.pth"
+gaussian_checkpoint: "logs/denoising/gaussian/best_model.pth"
+periodic_checkpoint: "logs/denoising/periodic/best_model.pth"
+salt_checkpoint: "logs/denoising/salt/best_model.pth"
+denoised_dataset_root_dir: "DataSet1_Noise_Removed"

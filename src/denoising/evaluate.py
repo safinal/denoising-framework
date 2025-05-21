@@ -4,10 +4,10 @@ import os
 import json
 from matplotlib import pyplot as plt
 
-from src.denoising.config import device, noise_type_detcetion_logs_dir, denoising_logs_dir
+from src.config import ConfigManager
 
 
-def check_denoising_performance(model, loader, noise_type, split):
+def check_denoising_performance(model, loader, noise_type, split, device):
     model.eval()
     psnr = 0
     lpips = 0
@@ -31,13 +31,13 @@ def check_denoising_performance(model, loader, noise_type, split):
         "lpips": lpips.detach().cpu().item()
     }
     print(results)
-    os.makedirs(os.path.join(denoising_logs_dir, noise_type), exist_ok=True)
-    with open(os.path.join(denoising_logs_dir, noise_type, f"{split}_results.json"), 'w') as f:
+    os.makedirs(os.path.join(ConfigManager().get("logs_dir"), noise_type), exist_ok=True)
+    with open(os.path.join(ConfigManager().get("logs_dir"), noise_type, f"{split}_results.json"), 'w') as f:
         json.dump(results, f)
 
 
 
-def check_noise_type_detection_performance(loader, model, split):
+def check_noise_type_detection_performance(loader, model, split, device):
     model.eval()
     full_y = torch.tensor([], device=device, dtype=torch.int8)
     full_predictions = torch.tensor([], device=device)
@@ -71,18 +71,18 @@ def check_noise_type_detection_performance(loader, model, split):
         "auroc": auroc.detach().cpu().item(), 
     }
     print(results)
-    os.makedirs(noise_type_detcetion_logs_dir, exist_ok=True)
-    with open(os.path.join(noise_type_detcetion_logs_dir, f"{split}_results.json"), 'w') as f:
+    os.makedirs(ConfigManager().get("logs_dir"), exist_ok=True)
+    with open(os.path.join(ConfigManager().get("logs_dir"), f"{split}_results.json"), 'w') as f:
         json.dump(results, f)
         
     metric = torchmetrics.classification.MulticlassROC(num_classes=3)
     metric.update(full_scores, full_y)
     fig, ax = metric.plot(score=True)
-    fig.savefig(os.path.join(noise_type_detcetion_logs_dir, f"{split}_roc_curve.png"))
+    fig.savefig(os.path.join(ConfigManager().get("logs_dir"), f"{split}_roc_curve.png"))
     plt.close(fig)
 
     metric = torchmetrics.classification.MulticlassConfusionMatrix(num_classes=3).to(device)
     metric.update(full_predictions, full_y)
     fig, ax = metric.plot()
-    fig.savefig(os.path.join(noise_type_detcetion_logs_dir, f"{split}_confusion_matrix.png"))
+    fig.savefig(os.path.join(ConfigManager().get("logs_dir"), f"{split}_confusion_matrix.png"))
     plt.close(fig)

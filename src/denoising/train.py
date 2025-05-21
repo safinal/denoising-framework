@@ -4,15 +4,17 @@ from tqdm import tqdm
 from matplotlib import pyplot as plt
 from sklearn.metrics import f1_score
 
-from src.denoising.config import denoising_num_epochs, noise_type_detcetion_num_epochs, device, denoising_logs_dir, noise_type_detcetion_logs_dir
+from src.config import ConfigManager
 
 
-def train_denoising_model(model, train_loader, val_loader, optimizer, criterion, noise_type):
+def train_denoising_model(model, train_loader, val_loader, noise_type, device):
+    criterion = torch.nn.MSELoss()
+    optimizer = torch.optim.AdamW(params=model.parameters(), lr=ConfigManager().get("lr"))
     train_losses = []
     val_losses = []
     best_val_loss = float('inf')
 
-    for epoch in range(denoising_num_epochs):
+    for epoch in range(ConfigManager().get("num_epochs")):
         # Training
         model.train()
         epoch_train_loss = 0
@@ -51,8 +53,8 @@ def train_denoising_model(model, train_loader, val_loader, optimizer, criterion,
         # Save best model
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
-            os.makedirs(os.path.join(denoising_logs_dir, noise_type), exist_ok=True)
-            torch.save(model.state_dict(), os.path.join(denoising_logs_dir, noise_type, "best_model.pth"))
+            os.makedirs(os.path.join(ConfigManager().get("logs_dir"), noise_type), exist_ok=True)
+            torch.save(model.state_dict(), os.path.join(ConfigManager().get("logs_dir"), noise_type, "best_model.pth"))
     
     # Plot and save both train and validation loss curves
     plt.figure(figsize=(10, 6))
@@ -63,20 +65,22 @@ def train_denoising_model(model, train_loader, val_loader, optimizer, criterion,
     plt.ylabel('Loss')
     plt.legend()
     plt.grid(True)
-    plt.savefig(os.path.join(denoising_logs_dir, noise_type, "loss_plot.png"))
+    plt.savefig(os.path.join(ConfigManager().get("logs_dir"), noise_type, "loss_plot.png"))
     plt.close()
 
     # Load best model
-    model.load_state_dict(torch.load(os.path.join(denoising_logs_dir, noise_type, "best_model.pth"), weights_only=True))
+    model.load_state_dict(torch.load(os.path.join(ConfigManager().get("logs_dir"), noise_type, "best_model.pth"), weights_only=True))
     return model
         
 
 
-def train_noise_type_detcetion_model(model, train_loader, val_loader, optimizer, criterion):
+def train_noise_type_detcetion_model(model, train_loader, val_loader, device):
+    criterion = torch.nn.CrossEntropyLoss()
+    optimizer = torch.optim.AdamW(params=model.parameters(), lr=ConfigManager().get("lr"))
     train_f1_list = []
     validation_f1_list = []
-
-    for epoch in range(noise_type_detcetion_num_epochs):
+    num_epochs = ConfigManager().get("num_epochs")
+    for epoch in range(num_epochs):
         model.train()
         loop = tqdm(train_loader, total=len(train_loader), leave=True)
         all_predictions = []
@@ -99,7 +103,7 @@ def train_noise_type_detcetion_model(model, train_loader, val_loader, optimizer,
             
             # Calculate F1 score for current batch
             batch_f1 = f1_score(targets.cpu().numpy(), predictions.cpu().numpy(), average='macro')
-            loop.set_description(f"Epoch [{epoch+1}/{noise_type_detcetion_num_epochs}]")
+            loop.set_description(f"Epoch [{epoch+1}/{num_epochs}]")
             loop.set_postfix(loss=loss.item(), train_f1=batch_f1)
         
         # Calculate overall F1 score for training
@@ -123,16 +127,16 @@ def train_noise_type_detcetion_model(model, train_loader, val_loader, optimizer,
         validation_f1_list.append(validation_f1)
         print(f"Validation F1 Score: {validation_f1}")
         if validation_f1 == max(validation_f1_list):
-            os.makedirs(noise_type_detcetion_logs_dir, exist_ok=True)
-            torch.save(model.state_dict(), os.path.join(noise_type_detcetion_logs_dir, "best_model.pth"))
+            os.makedirs(ConfigManager().get("logs_dir"), exist_ok=True)
+            torch.save(model.state_dict(), os.path.join(ConfigManager().get("logs_dir"), "best_model.pth"))
 
     plt.plot(train_f1_list, label="Train")
     plt.plot(validation_f1_list, label="Validation")
     plt.xlabel('Epoch')
     plt.ylabel('F1 Score')
     plt.legend()
-    plt.savefig(os.path.join(noise_type_detcetion_logs_dir, "train_val_f1_plot.png"))
+    plt.savefig(os.path.join(ConfigManager().get("logs_dir"), "train_val_f1_plot.png"))
     plt.close()
 
-    model.load_state_dict(torch.load(os.path.join(noise_type_detcetion_logs_dir, "best_model.pth"), weights_only=True))
+    model.load_state_dict(torch.load(os.path.join(ConfigManager().get("logs_dir"), "best_model.pth"), weights_only=True))
     return model

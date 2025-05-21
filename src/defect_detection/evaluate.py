@@ -6,11 +6,11 @@ from tqdm import tqdm
 from matplotlib import pyplot as plt
 from sklearn.model_selection import KFold
 
-from src.defect_detection.config import device, base_logs_dir, k_folds, batch_size, learning_rate, num_epochs
 from src.defect_detection.model import create_defect_detection_model
+from src.config import ConfigManager
 
 
-def check_defect_detection_performance(loader, model, experiment_logs_dir, split):
+def check_defect_detection_performance(loader, model, split, device):
     model.eval()
     full_y = torch.tensor([], device=device, dtype=torch.int8)
     full_predictions = torch.tensor([], device=device)
@@ -44,37 +44,38 @@ def check_defect_detection_performance(loader, model, experiment_logs_dir, split
         "auroc": auroc.detach().cpu().item()
     }
     print(results)
-    os.makedirs(os.path.join(base_logs_dir, experiment_logs_dir), exist_ok=True)
-    with open(os.path.join(base_logs_dir, experiment_logs_dir, f"{split}_results.json"), 'w') as f:
+    os.makedirs(os.path.join(ConfigManager().get("base_logs_dir"), ConfigManager().get("experiment_logs_dir")), exist_ok=True)
+    with open(os.path.join(ConfigManager().get("base_logs_dir"), ConfigManager().get("experiment_logs_dir"), f"{split}_results.json"), 'w') as f:
         json.dump(results, f)
 
     metric = torchmetrics.classification.BinaryROC()
     metric.update(full_scores, full_y)
     fig, ax = metric.plot(score=True)
-    fig.savefig(os.path.join(base_logs_dir, experiment_logs_dir, f"{split}_roc_curve.png"))
+    fig.savefig(os.path.join(ConfigManager().get("base_logs_dir"), ConfigManager().get("experiment_logs_dir"), f"{split}_roc_curve.png"))
     plt.close(fig)
 
     metric = torchmetrics.classification.BinaryConfusionMatrix().to(device)
     metric.update(full_predictions, full_y)
     fig, ax = metric.plot()
-    fig.savefig(os.path.join(base_logs_dir, experiment_logs_dir, f"{split}_confusion_matrix.png"))
+    fig.savefig(os.path.join(ConfigManager().get("base_logs_dir"), ConfigManager().get("experiment_logs_dir"), f"{split}_confusion_matrix.png"))
     plt.close(fig)
 
 
-def defect_detection_k_fold_cross_validation(dataset, criterion, experiment_logs_dir):
-    kf = KFold(n_splits=k_folds, shuffle=True, random_state=42)
+def defect_detection_k_fold_cross_validation(dataset, criterion, device):
+    kf = KFold(n_splits=ConfigManager().get("k_folds"), shuffle=True, random_state=42)
 
     for fold, (train_idx, val_idx) in enumerate(kf.split(dataset)):
         print(f"Fold {fold + 1}")
         print("-------")
 
-        train_loader = torch.utils.data.DataLoader(dataset=dataset, batch_size=batch_size, sampler=torch.utils.data.SubsetRandomSampler(train_idx))
-        val_loader = torch.utils.data.DataLoader(dataset=dataset, batch_size=batch_size, sampler=torch.utils.data.SubsetRandomSampler(val_idx))
+        train_loader = torch.utils.data.DataLoader(dataset=dataset, batch_size=ConfigManager().get("batch_size"), sampler=torch.utils.data.SubsetRandomSampler(train_idx))
+        val_loader = torch.utils.data.DataLoader(dataset=dataset, batch_size=ConfigManager().get("batch_size"), sampler=torch.utils.data.SubsetRandomSampler(val_idx))
 
         model = create_defect_detection_model()
         model.to(device)
-        optimizer = torch.optim.Adam(params=model.parameters(), lr=learning_rate)
+        optimizer = torch.optim.Adam(params=model.parameters(), lr=ConfigManager().get("lr"))
         model.train()
+        num_epochs = ConfigManager().get("num_epochs")
         for epoch in range(num_epochs):
             loop = tqdm(train_loader, total=len(train_loader), leave=True)
             for data, targets in loop:
@@ -93,4 +94,4 @@ def defect_detection_k_fold_cross_validation(dataset, criterion, experiment_logs
                 loop.set_postfix(loss=loss.item())
 
         print(f"Val set: ", end='')
-        check_defect_detection_performance(val_loader, model, experiment_logs_dir=experiment_logs_dir, split=f"cross_val_{fold}")
+        check_defect_detection_performance(val_loader, model, experiment_logs_dir=ConfigManager().get("experiment_logs_dir"), split=f"cross_val_{fold}")

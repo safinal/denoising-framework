@@ -1,7 +1,7 @@
 import torch
 import torchvision
 
-from src.denoising.config import device, denoising_in_channels
+from src.config import ConfigManager
 
 
 class DenoisingAutoEncoder(torch.nn.Module):
@@ -56,15 +56,20 @@ class DenoisingAutoEncoder(torch.nn.Module):
         return x
 
 
-def create_noise_type_detcetion_model():
-    model = torchvision.models.efficientnet_v2_l(weights='DEFAULT')
+def create_noise_type_detcetion_model(device, checkpoint_path=None):
+    model = torchvision.models.efficientnet_v2_l(weights='DEFAULT' if checkpoint_path is None else None)
     for param in model.parameters():
         param.requires_grad = False
     model.avgpool = torch.nn.Identity()
     model.classifier[1] = torch.nn.Linear(in_features=327680, out_features=3, bias=True)
+    if checkpoint_path is not None:
+        model.load_state_dict(torch.load(checkpoint_path, weights_only=True))
     model.to(device)
     return model
 
-def create_denoising_model():
-    model = DenoisingAutoEncoder(in_channels=denoising_in_channels).to(device)
+def create_denoising_model(device, checkpoint_path=None):
+    model = DenoisingAutoEncoder(in_channels=ConfigManager().get("in_channels"))
+    if checkpoint_path is not None:
+        model.load_state_dict(torch.load(checkpoint_path, weights_only=True))
+    model.to(device)
     return model

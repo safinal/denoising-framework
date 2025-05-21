@@ -4,7 +4,7 @@ import os
 import cv2
 import pandas as pd
 
-from src.defect_detection.config import batch_size
+from src.config import ConfigManager
 
 
 class DisksDataset(torch.utils.data.Dataset):
@@ -27,9 +27,9 @@ class DisksDataset(torch.utils.data.Dataset):
         return (image, y_label)
 
 
-def create_defect_detection_train_val_datasets_and_loaders(dataset_root_dir, val_fraction=0.2):
-    dataset = DisksDataset(root_dir=dataset_root_dir, transform=torchvision.transforms.ToTensor())
-    train_dataset, val_dataset = torch.utils.data.random_split(dataset, [1 - val_fraction, val_fraction])
-    train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
-    val_loader = torch.utils.data.DataLoader(dataset=val_dataset, batch_size=batch_size, shuffle=True)
+def create_defect_detection_train_val_datasets_and_loaders():
+    dataset = DisksDataset(root_dir=ConfigManager().get("dataset_root_dir"), transform=torchvision.transforms.ToTensor())
+    train_dataset, val_dataset = torch.utils.data.random_split(dataset, [1 - ConfigManager().get("val_fraction"), ConfigManager().get("val_fraction")])
+    train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=ConfigManager().get("batch_size"), shuffle=True)
+    val_loader = torch.utils.data.DataLoader(dataset=val_dataset, batch_size=ConfigManager().get("batch_size"), shuffle=True)
     return dataset, train_dataset, train_loader, val_dataset, val_loader

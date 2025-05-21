@@ -4,13 +4,15 @@ from tqdm import tqdm
 from matplotlib import pyplot as plt
 from sklearn.metrics import f1_score
 
-from src.defect_detection.config import num_epochs, device, base_logs_dir
+from src.config import ConfigManager
 
 
-def train_defect_detection_model(model, train_loader, val_loader, optimizer, criterion, experiment_logs_dir):
+def train_defect_detection_model(model, train_loader, val_loader, device):
+    criterion = torch.nn.BCEWithLogitsLoss()
+    optimizer = torch.optim.AdamW(params=model.parameters(), lr=ConfigManager().get("lr"))
     train_f1_list = []
     validation_f1_list = []
-
+    num_epochs = ConfigManager().get("num_epochs")
     for epoch in range(num_epochs):
         model.train()
         loop = tqdm(train_loader, total=len(train_loader), leave=True)
@@ -50,16 +52,16 @@ def train_defect_detection_model(model, train_loader, val_loader, optimizer, cri
         validation_f1_list.append(val_f1)
         print(f"Validation F1 Score: {val_f1}")
         if validation_f1_list[-1] == max(validation_f1_list):
-            os.makedirs(os.path.join(base_logs_dir, experiment_logs_dir), exist_ok=True)
-            torch.save(model.state_dict(), os.path.join(base_logs_dir, experiment_logs_dir, "best_model.pth"))
+            os.makedirs(os.path.join(ConfigManager().get("base_logs_dir"), ConfigManager().get("experiment_logs_dir")), exist_ok=True)
+            torch.save(model.state_dict(), os.path.join(ConfigManager().get("base_logs_dir"), ConfigManager().get("experiment_logs_dir"), "best_model.pth"))
 
     plt.plot(train_f1_list, label="Train")
     plt.plot(validation_f1_list, label="Validation")
     plt.xlabel('Epoch')
     plt.ylabel('F1 Score')
     plt.legend()
-    plt.savefig(os.path.join(base_logs_dir, experiment_logs_dir, "train_val_f1_plot.png"))
+    plt.savefig(os.path.join(ConfigManager().get("base_logs_dir"), ConfigManager().get("experiment_logs_dir"), "train_val_f1_plot.png"))
     plt.close()
 
-    model.load_state_dict(torch.load(os.path.join(base_logs_dir, experiment_logs_dir, "best_model.pth"), weights_only=True))
+    model.load_state_dict(torch.load(os.path.join(ConfigManager().get("base_logs_dir"), ConfigManager().get("experiment_logs_dir"), "best_model.pth"), weights_only=True))
     return model
